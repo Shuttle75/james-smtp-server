@@ -4,14 +4,15 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.command.ActiveMQQueue;
+import org.apache.activemq.store.PListStore;
 import org.apache.activemq.store.PersistenceAdapter;
 import org.apache.activemq.store.kahadb.KahaDBPersistenceAdapter;
+import org.apache.activemq.store.kahadb.plist.PListStoreImpl;
 import org.apache.james.protocols.api.handler.ProtocolHandler;
 import org.apache.james.protocols.smtp.MailEnvelope;
 import org.apache.james.protocols.smtp.SMTPSession;
 import org.apache.james.protocols.smtp.hook.HookResult;
 import org.apache.james.protocols.smtp.hook.MessageHook;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,13 +20,9 @@ import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.core.JmsTemplate;
 
 import javax.jms.ObjectMessage;
-import javax.jms.StreamMessage;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.UUID;
-
-import static org.apache.commons.io.output.NullOutputStream.NULL_OUTPUT_STREAM;
 
 @Configuration
 @Slf4j
@@ -39,16 +36,26 @@ public class SmtpServerConfiguration {
     }
 
     @Bean
-    public PersistenceAdapter persistenceAdapter() {
+    public PersistenceAdapter persistenceAdapter() throws IOException {
         PersistenceAdapter persistenceAdapter = new KahaDBPersistenceAdapter();
         persistenceAdapter.setDirectory(new File("c:\\tmp\\KahaDB"));
+        persistenceAdapter.createQueueMessageStore(new ActiveMQQueue("smtp.queue"));
         return persistenceAdapter;
     }
 
     @Bean
-    public BrokerService producerBroker(PersistenceAdapter persistenceAdapter) throws IOException {
+    public PListStore tempDataStore() {
+        PListStore pListStore = new PListStoreImpl();
+        pListStore.setDirectory(new File("c:\\tmp\\KahaDBtmp"));
+        return pListStore;
+    }
+
+    @Bean
+    public BrokerService producerBroker(PersistenceAdapter persistenceAdapter, PListStore tempDataStore) throws IOException {
         BrokerService brokerService = new BrokerService();
         brokerService.setPersistenceAdapter(persistenceAdapter);
+        brokerService.setTempDataStore(tempDataStore);
+
         return brokerService;
     }
 
@@ -60,16 +67,11 @@ public class SmtpServerConfiguration {
             public HookResult onMessage(SMTPSession smtpSession, MailEnvelope mailEnvelope) {
                 byte[] mailEnvelopeBytes = mailEnvelope.getMessageInputStream().readAllBytes();
 
-                jmsTemplate.setDefaultDestination(new ActiveMQQueue("smtp.queue"));
-                jmsTemplate.send(session -> {
+                jmsTemplate.send("smtp.queue", session -> {
                     ObjectMessage objectMessage = session.createObjectMessage(mailEnvelopeBytes);
                     objectMessage.setStringProperty("sender", mailEnvelope.getMaybeSender().asPrettyString());
                     return objectMessage;
                 });
-
-//                FileUtils.copyInputStreamToFile(
-//                        mailEnvelope.getMessageInputStream(),
-//                        new File("/dev/null"));
 
                 return HookResult.OK;
             }
