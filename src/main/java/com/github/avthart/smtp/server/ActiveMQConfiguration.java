@@ -14,7 +14,6 @@ import java.io.IOException;
 
 @Configuration
 public class ActiveMQConfiguration {
-    public static final int DEFAULT_MAX_FILE_LENGTH = 1024 * 1024 * 256;
 
     @Bean
     public ActiveMQConnectionFactoryCustomizer configureRedeliveryPolicy() {
@@ -26,7 +25,6 @@ public class ActiveMQConfiguration {
         KahaDBStore kahaDBStore = new KahaDBStore();
         kahaDBStore.setDirectory(new File("activemq-data/localhost/KahaDB"));
         kahaDBStore.setMaxAsyncJobs(1000000);
-        kahaDBStore.setJournalMaxFileLength(DEFAULT_MAX_FILE_LENGTH);
         return kahaDBStore;
     }
 
