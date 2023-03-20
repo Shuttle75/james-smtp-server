@@ -1,7 +1,9 @@
 package com.github.avthart.smtp.server;
 
+import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.jmx.JmxReporter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.james.metrics.api.NoopMetricFactory;
+import org.apache.james.metrics.dropwizard.DropWizardMetricFactory;
 import org.apache.james.protocols.api.Protocol;
 import org.apache.james.protocols.api.handler.ProtocolHandler;
 import org.apache.james.protocols.netty.NettyServer;
@@ -29,10 +31,13 @@ public class SmtpServer {
     }
 
     public void start() throws Exception {
-        SMTPConfigurationImpl smtpConfiguration = new SMTPConfigurationImpl();
-        smtpConfiguration.setSoftwareName(properties.getSoftwareName());
+        MetricRegistry metricRegistry = new MetricRegistry();
+        DropWizardMetricFactory metricFactory = new DropWizardMetricFactory(metricRegistry);
+        JmxReporter.forRegistry(metricRegistry).build().start();
 
-        SMTPProtocolHandlerChain chain = new SMTPProtocolHandlerChain(new NoopMetricFactory());
+        SMTPConfigurationImpl smtpConfiguration = new SMTPConfigurationImpl();
+
+        SMTPProtocolHandlerChain chain = new SMTPProtocolHandlerChain(metricFactory);
         chain.addAll(0, handlers);
         chain.wireExtensibleHandlers();
 
