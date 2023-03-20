@@ -1,7 +1,6 @@
 package com.github.avthart.smtp.server;
 
 import org.apache.activemq.broker.BrokerService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Service;
 
@@ -12,10 +11,13 @@ import javax.jms.ObjectMessage;
 @Service
 public class QueueConsumer {
 
-    @Autowired
-    BrokerService producerBroker;
+    private final BrokerService producerBroker;
 
-    @JmsListener(destination = "smtp.queue", concurrency = "8-16")
+    public QueueConsumer(BrokerService producerBroker) {
+        this.producerBroker = producerBroker;
+    }
+
+    @JmsListener(destination = "smtp.queue")
     public void listener(ObjectMessage objectMessage) throws JMSException {
         objectMessage.getObject();
         producerBroker.checkQueueSize("smtp.queue");
