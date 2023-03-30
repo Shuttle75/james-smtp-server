@@ -6,6 +6,18 @@
 	<groupId>com.github.avthart</groupId>
 	<artifactId>spring-boot-james-smtp-server</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>9</source>
+					<target>9</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 	<packaging>jar</packaging>
 
 	<name>spring-boot-james-smtp-server</name>
@@ -53,6 +65,11 @@
 			<version>1.5</version>
 		</dependency>
 		<dependency>
+			<groupId>commons-net</groupId>
+			<artifactId>commons-net</artifactId>
+			<version>3.9.0</version>
+		</dependency>
+		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
@@ -62,23 +79,4 @@
 			<artifactId>spring-boot-configuration-processor</artifactId>
 		</dependency>
 	</dependencies>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<source>18</source>
-					<target>18</target>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
-
-
 </project>
