@@ -1,6 +1,7 @@
 package com.github.avthart.smtp.server;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.activemq.broker.BrokerService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.mail.util.MimeMessageParser;
 import org.apache.commons.net.smtp.SMTPClient;
@@ -22,6 +23,11 @@ import java.util.Properties;
 @Service
 public class MailOutConsumer {
     private static final String UTF_8_ENCODING = "UTF-8";
+    private final BrokerService producerBroker;
+
+    public MailOutConsumer(BrokerService producerBroker) {
+        this.producerBroker = producerBroker;
+    }
 
     @JmsListener(destination = "smtp.mail.out")
     public void listener(ObjectMessage objectMessage) throws JMSException, MessagingException {
@@ -36,7 +42,7 @@ public class MailOutConsumer {
 
         try {
             final MimeMessageParser mimeParser = new MimeMessageParser(mimeMessage).parse();
-            System.out.println("Attachments " + mimeParser.getAttachmentList().size());
+//            System.out.println("Attachments " + mimeParser.getAttachmentList().size());
         }
         catch (Exception e) {
             // Error parsing
@@ -56,11 +62,12 @@ public class MailOutConsumer {
                 wr.write(line);
             }
             wr.close();
-            log.info("Mail OUT sent, recipients " + objectMessage.getStringProperty("recipients"));
+//            log.info("Mail OUT sent, recipients " + objectMessage.getStringProperty("recipients"));
 
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
+        producerBroker.checkQueueSize("smtp.mail.out");
     }
 }

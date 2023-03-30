@@ -38,7 +38,7 @@ public class MailGatewayConsumer {
 
         try {
             final MimeMessageParser mimeParser = new MimeMessageParser(mimeMessage).parse();
-            System.out.println("Attachments " + mimeParser.getAttachmentList().size());
+//            System.out.println("Attachments " + mimeParser.getAttachmentList().size());
         }
         catch (Exception e) {
             // Error parsing
@@ -52,7 +52,7 @@ public class MailGatewayConsumer {
         * */
 
 
-        producerBroker.checkQueueSize("smtp.queue");
+        producerBroker.checkQueueSize("smtp.mail.in");
 
         jmsTemplate.send("smtp.mail.out", session -> objectMessage);
     }
