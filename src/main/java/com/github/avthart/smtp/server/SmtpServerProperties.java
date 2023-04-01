@@ -12,4 +12,6 @@ public class SmtpServerProperties {
     private int port = 10025;
 
     private int timeout = 500;
+
+    private boolean mailOutEnabled = true;
 }

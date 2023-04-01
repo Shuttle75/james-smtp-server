@@ -12,6 +12,8 @@ import org.springframework.context.annotation.Configuration;
 import java.io.File;
 import java.io.IOException;
 
+import static org.apache.activemq.store.kahadb.disk.journal.Journal.JournalDiskSyncStrategy.PERIODIC;
+
 @Configuration
 public class ActiveMQConfiguration {
 
@@ -25,6 +27,7 @@ public class ActiveMQConfiguration {
         KahaDBStore kahaDBStore = new KahaDBStore();
         kahaDBStore.setDirectory(new File("activemq-data/localhost/KahaDB"));
         kahaDBStore.setMaxAsyncJobs(1000000);
+        kahaDBStore.setJournalDiskSyncStrategy(PERIODIC.toString());
         return kahaDBStore;
     }
 

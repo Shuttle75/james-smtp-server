@@ -24,9 +24,11 @@ import java.util.Properties;
 public class MailOutConsumer {
     private static final String UTF_8_ENCODING = "UTF-8";
     private final BrokerService producerBroker;
+    private final SmtpServerProperties properties;
 
-    public MailOutConsumer(BrokerService producerBroker) {
+    public MailOutConsumer(BrokerService producerBroker, SmtpServerProperties properties) {
         this.producerBroker = producerBroker;
+        this.properties = properties;
     }
 
     @JmsListener(destination = "smtp.mail.out")
@@ -49,23 +51,26 @@ public class MailOutConsumer {
             throw new RuntimeException(e);
         }
 
-        SMTPClient smtpClient = new SMTPClient(UTF_8_ENCODING);
-        try {
-            smtpClient.connect("localhost", 2525);
-            smtpClient.setSender(sender);
-            for (String recipient: recipients) {
-                smtpClient.addRecipient(recipient);
-            }
+        if(properties.isMailOutEnabled()) {
+            SMTPClient smtpClient = new SMTPClient(UTF_8_ENCODING);
+            try {
+                smtpClient.connect("localhost", 2525);
+                smtpClient.setSender(sender);
+                for (String recipient : recipients) {
+                    smtpClient.addRecipient(recipient);
+                }
 
-            Writer wr = smtpClient.sendMessageData();
-            for (String line : IOUtils.readLines(inputStream, UTF_8_ENCODING)) {
-                wr.write(line);
-            }
-            wr.close();
+                Writer wr = smtpClient.sendMessageData();
+                for (String line : IOUtils.readLines(inputStream, UTF_8_ENCODING)) {
+                    wr.write(line);
+                }
+                wr.close();
 //            log.info("Mail OUT sent, recipients " + objectMessage.getStringProperty("recipients"));
 
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            }
+            catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         producerBroker.checkQueueSize("smtp.mail.out");
