@@ -19,6 +19,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.github.avthart.smtp.server.MailGatewayConsumer.ACTIVEMQ_MAIL_IN;
+
 @Configuration
 @Slf4j
 @EnableConfigurationProperties(SmtpServerProperties.class)
@@ -41,7 +43,7 @@ public class SmtpServerConfiguration {
                         .map(MailAddress::asPrettyString)
                         .collect(Collectors.toList());
 
-                jmsTemplate.send("smtp.mail.in", session -> {
+                jmsTemplate.send(ACTIVEMQ_MAIL_IN, session -> {
                     ObjectMessage objectMessage = session.createObjectMessage(mailEnvelopeBytes);
                     objectMessage.setStringProperty("sender", mailEnvelope.getMaybeSender().asPrettyString());
                     objectMessage.setStringProperty("recipients", String.join(",", recipients));

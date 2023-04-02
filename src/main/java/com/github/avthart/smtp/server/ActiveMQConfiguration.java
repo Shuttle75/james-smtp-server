@@ -1,11 +1,11 @@
 package com.github.avthart.smtp.server;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.activemq.broker.BrokerService;
 import org.apache.activemq.store.PListStore;
 import org.apache.activemq.store.PersistenceAdapter;
 import org.apache.activemq.store.kahadb.KahaDBStore;
 import org.apache.activemq.store.kahadb.plist.PListStoreImpl;
-import org.springframework.boot.autoconfigure.jms.activemq.ActiveMQConnectionFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,20 +14,16 @@ import java.io.IOException;
 
 import static org.apache.activemq.store.kahadb.disk.journal.Journal.JournalDiskSyncStrategy.PERIODIC;
 
+@Slf4j
 @Configuration
 public class ActiveMQConfiguration {
-
-    @Bean
-    public ActiveMQConnectionFactoryCustomizer configureRedeliveryPolicy() {
-        return connectionFactory -> connectionFactory.setCopyMessageOnSend(false);
-    }
 
     @Bean
     public PersistenceAdapter persistenceAdapter() {
         KahaDBStore kahaDBStore = new KahaDBStore();
         kahaDBStore.setDirectory(new File("activemq-data/localhost/KahaDB"));
         kahaDBStore.setMaxAsyncJobs(1000000);
-        kahaDBStore.setJournalDiskSyncStrategy(PERIODIC.toString());
+        kahaDBStore.setJournalDiskSyncStrategy(PERIODIC.name());
         return kahaDBStore;
     }
 

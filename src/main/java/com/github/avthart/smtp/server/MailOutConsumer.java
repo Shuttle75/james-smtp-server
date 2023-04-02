@@ -23,6 +23,7 @@ import java.util.Properties;
 @Service
 public class MailOutConsumer {
     private static final String UTF_8_ENCODING = "UTF-8";
+    protected static final String ACTIVEMQ_MAIL_OUT = "ActiveMQ.Mail.Out";
     private final BrokerService producerBroker;
     private final SmtpServerProperties properties;
 
@@ -31,8 +32,10 @@ public class MailOutConsumer {
         this.properties = properties;
     }
 
-    @JmsListener(destination = "smtp.mail.out")
-    public void listener(ObjectMessage objectMessage) throws JMSException, MessagingException {
+    @JmsListener(destination = ACTIVEMQ_MAIL_OUT)
+    public void listener(ObjectMessage objectMessage) throws JMSException, MessagingException, IOException {
+        System.out.println(objectMessage.getJMSMessageID() + " Redelivered - " + objectMessage.getJMSRedelivered());
+
         InputStream inputStream = new ByteArrayInputStream((byte[]) objectMessage.getObject());
 
         String sender = objectMessage.getStringProperty("sender");
@@ -53,26 +56,20 @@ public class MailOutConsumer {
 
         if(properties.isMailOutEnabled()) {
             SMTPClient smtpClient = new SMTPClient(UTF_8_ENCODING);
-            try {
-                smtpClient.connect("localhost", 2525);
-                smtpClient.setSender(sender);
-                for (String recipient : recipients) {
-                    smtpClient.addRecipient(recipient);
-                }
-
-                Writer wr = smtpClient.sendMessageData();
-                for (String line : IOUtils.readLines(inputStream, UTF_8_ENCODING)) {
-                    wr.write(line);
-                }
-                wr.close();
-//            log.info("Mail OUT sent, recipients " + objectMessage.getStringProperty("recipients"));
-
+            smtpClient.connect("localhost", 2525);
+            smtpClient.setSender(sender);
+            for (String recipient : recipients) {
+                smtpClient.addRecipient(recipient);
             }
-            catch (IOException e) {
-                throw new RuntimeException(e);
+
+            Writer wr = smtpClient.sendMessageData();
+            for (String line : IOUtils.readLines(inputStream, UTF_8_ENCODING)) {
+                wr.write(line);
             }
+            wr.close();
         }
 
-        producerBroker.checkQueueSize("smtp.mail.out");
+        objectMessage.acknowledge();
+        producerBroker.checkQueueSize(ACTIVEMQ_MAIL_OUT);
     }
 }

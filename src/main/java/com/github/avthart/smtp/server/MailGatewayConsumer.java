@@ -16,10 +16,12 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Properties;
 
+import static com.github.avthart.smtp.server.MailOutConsumer.ACTIVEMQ_MAIL_OUT;
+
 @Slf4j
 @Service
 public class MailGatewayConsumer {
-
+    protected static final String ACTIVEMQ_MAIL_IN = "ActiveMQ.Mail.In";
     private final BrokerService producerBroker;
     private final JmsTemplate jmsTemplate;
 
@@ -28,7 +30,7 @@ public class MailGatewayConsumer {
         this.jmsTemplate = jmsTemplate;
     }
 
-    @JmsListener(destination = "smtp.mail.in")
+    @JmsListener(destination = ACTIVEMQ_MAIL_IN)
     public void listener(ObjectMessage objectMessage) throws JMSException, MessagingException {
         InputStream inputStream = new ByteArrayInputStream((byte[]) objectMessage.getObject());
 
@@ -52,8 +54,8 @@ public class MailGatewayConsumer {
         * */
 
 
-        producerBroker.checkQueueSize("smtp.mail.in");
+        producerBroker.checkQueueSize(ACTIVEMQ_MAIL_IN);
 
-        jmsTemplate.send("smtp.mail.out", session -> objectMessage);
+        jmsTemplate.send(ACTIVEMQ_MAIL_OUT, session -> objectMessage);
     }
 }
