@@ -16,7 +16,7 @@ import java.io.InputStream;
 import java.io.Writer;
 
 @Slf4j
-@Service
+//@Service
 public class DeadLetterQueueConsumer {
   private static final String UTF_8_ENCODING = "UTF-8";
   protected static final String ACTIVEMQ_DLQ = "ActiveMQ.DLQ";
@@ -29,7 +29,7 @@ public class DeadLetterQueueConsumer {
   }
 
 
-  @JmsListener(destination = ACTIVEMQ_DLQ, concurrency = "2")
+//  @JmsListener(destination = ACTIVEMQ_DLQ, concurrency = "2")
   public void listener(ObjectMessage objectMessage) throws JMSException, MessagingException, IOException {
     InputStream inputStream = new ByteArrayInputStream((byte[]) objectMessage.getObject());
 
