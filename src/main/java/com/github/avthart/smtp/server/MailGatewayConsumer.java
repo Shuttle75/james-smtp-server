@@ -31,8 +31,8 @@ public class MailGatewayConsumer {
     }
 
     @JmsListener(destination = ACTIVEMQ_MAIL_IN)
-    public void listener(ObjectMessage objectMessage) throws JMSException, MessagingException {
-        InputStream inputStream = new ByteArrayInputStream((byte[]) objectMessage.getObject());
+    public void listener(ObjectMessage inMessage) throws JMSException, MessagingException {
+        InputStream inputStream = new ByteArrayInputStream((byte[]) inMessage.getObject());
 
         Properties props = System.getProperties();
         Session mailSession = Session.getInstance(props);
@@ -56,6 +56,11 @@ public class MailGatewayConsumer {
 
         producerBroker.checkQueueSize(ACTIVEMQ_MAIL_IN);
 
-        jmsTemplate.send(ACTIVEMQ_MAIL_OUT, session -> objectMessage);
+        jmsTemplate.send(ACTIVEMQ_MAIL_OUT, session -> {
+            ObjectMessage outMessage = session.createObjectMessage(inMessage.getObject());
+            outMessage.setStringProperty("sender", inMessage.getStringProperty("sender"));
+            outMessage.setStringProperty("recipients", inMessage.getStringProperty("recipients"));
+            return outMessage;
+        });
     }
 }
