@@ -3,6 +3,7 @@ package com.github.avthart.smtp.server;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jmx.export.annotation.ManagedOperation;
+import org.springframework.jmx.export.annotation.ManagedOperationParameter;
 import org.springframework.jmx.export.annotation.ManagedResource;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +25,11 @@ public class DeadLetterQueueConsumer {
     }
 
     @ManagedOperation(description = "Reload Dead Letter Queue")
+    @ManagedOperationParameter(name = "Amount of messages", description = "Amount of messages that moved to Mail.Out queue")
     public String reloadDeadLetterQueue(Integer amount) {
+        if (amount <= 0) {
+            return "Please enter amount greater then 0";
+        }
 
         for (int i = 0; i < amount; i++) {
             Message message = jmsTemplate.receive(ACTIVEMQ_DLQ);
@@ -43,6 +48,6 @@ public class DeadLetterQueueConsumer {
                 break;
             }
         }
-        return "1000 moded to Mail Out";
+        return amount + " moded to Mail Out";
     }
 }
